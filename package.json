@@ -1,6 +1,6 @@
 {
   "name": "neo-printer-nippon-addon",
-  "version": "1.0.0",
+  "version": "1.1.2",
   "description": "Nippon Thermal Printer native Node.js addon using NPrinterLib",
   "main": "index.js",
   "scripts": {
