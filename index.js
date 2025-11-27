@@ -1,0 +1,418 @@
+const addon = require('./build/Release/nippon_printer');
+
+/**
+ * Nippon Thermal Printer Class
+ * High-level wrapper for NPrinterLib native addon
+ */
+class NipponPrinter {
+    constructor() {
+        this.printerName = null;
+        this.isOpen = false;
+    }
+
+    /**
+     * Get list of available Nippon printers
+     * @returns {string[]} Array of printer names
+     */
+    static enumeratePrinters() {
+        try {
+            return addon.enumeratePrinters();
+        } catch (error) {
+            throw new Error(`Failed to enumerate printers: ${error.message}`);
+        }
+    }
+
+    /**
+     * Open connection to printer
+     * @param {string} printerName - Printer name or IP address
+     * @returns {Promise<boolean>} Success status
+     */
+    async open(printerName) {
+        try {
+            const result = addon.openPrinter(printerName);
+            if (result.success) {
+                this.printerName = printerName;
+                this.isOpen = true;
+                return true;
+            }
+            throw new Error(`Open failed with code ${result.returnCode}`);
+        } catch (error) {
+            throw new Error(`Failed to open printer: ${error.message}`);
+        }
+    }
+
+    /**
+     * Close connection to printer
+     * @returns {Promise<boolean>} Success status
+     */
+    async close() {
+        if (!this.isOpen || !this.printerName) {
+            return true;
+        }
+
+        try {
+            const result = addon.closePrinter(this.printerName);
+            this.isOpen = false;
+            return result.success;
+        } catch (error) {
+            throw new Error(`Failed to close printer: ${error.message}`);
+        }
+    }
+
+    /**
+     * Print text data
+     * @param {string} data - Text data to print (can include ESC/POS commands)
+     * @returns {Promise<Object>} Print result with jobId
+     */
+    async print(data) {
+        if (!this.isOpen) {
+            throw new Error('Printer not open');
+        }
+
+        try {
+            const result = addon.print(this.printerName, data);
+            if (!result.success) {
+                throw new Error(`Print failed with code ${result.returnCode}`);
+            }
+            return {
+                success: true,
+                jobId: result.jobId,
+                returnCode: result.returnCode
+            };
+        } catch (error) {
+            throw new Error(`Print failed: ${error.message}`);
+        }
+    }
+
+    /**
+     * Print formatted text with options
+     * @param {string} text - Text to print
+     * @param {Object} options - Print options
+     * @returns {Promise<Object>} Print result
+     */
+    async printText(text, options = {}) {
+        if (!this.isOpen) {
+            throw new Error('Printer not open');
+        }
+
+        let printData = '';
+
+        // Initialize
+        if (options.initialize !== false) {
+            printData += '1B40'; // ESC @
+        }
+
+        // Alignment
+        if (options.align === 'center') {
+            printData += '1B6101'; // ESC a 1
+        } else if (options.align === 'right') {
+            printData += '1B6102'; // ESC a 2
+        } else {
+            printData += '1B6100'; // ESC a 0
+        }
+
+        // Text size using Nippon's FS ! n format
+        if (options.width || options.height) {
+            const w = options.width || 1;
+            const h = options.height || 1;
+            // Nippon uses specific size codes: 0x00=normal, 0x06=2x2, 0x20=large
+            let sizeCode = '00';
+            if (w >= 3 || h >= 3) {
+                sizeCode = '20'; // Large (3x3 or more)
+            } else if (w === 2 && h === 2) {
+                sizeCode = '06'; // Double (2x2)
+            }
+            printData += `1C21${sizeCode}`; // FS ! n
+        }
+
+        // Bold
+        if (options.bold) {
+            printData += '1B4501'; // ESC E 1
+        }
+
+        // Underline
+        if (options.underline) {
+            printData += '1B2D01'; // ESC - 1
+        }
+
+        // Add text
+        printData += `"${text}"`;
+
+        // Reset formatting
+        if (options.bold) {
+            printData += '1B4500'; // ESC E 0
+        }
+        if (options.underline) {
+            printData += '1B2D00'; // ESC - 0
+        }
+
+        // Reset text size
+        if (options.width || options.height) {
+            printData += '1C2100'; // FS ! 0
+        }
+
+        // Reset alignment
+        printData += '1B6100'; // ESC a 0
+
+        // Line feeds
+        printData += '0A'; // LF
+        if (options.feed) {
+            const feedLines = typeof options.feed === 'number' ? options.feed : 3;
+            for (let i = 0; i < feedLines; i++) {
+                printData += '0A';
+            }
+        }
+
+        // Cut paper
+        if (options.cut) {
+            printData += '1B4A60'; // Feed before cut
+            if (options.cut === 'full') {
+                printData += '1B69'; // Full cut
+            } else {
+                printData += '1B6D'; // Partial cut
+            }
+        }
+
+        return await this.print(printData);
+    }
+
+    /**
+     * Print receipt with formatted sections
+     * @param {Object} receipt - Receipt data
+     * @returns {Promise<Object>} Print result
+     */
+    async printReceipt(receipt) {
+        if (!this.isOpen) {
+            throw new Error('Printer not open');
+        }
+
+        let printData = '\x1B@'; // Initialize
+
+        // Header
+        if (receipt.header) {
+            printData += '\x1Ba\x01';  // Center align
+            printData += '\x1D!\x11';  // Double size
+            printData += receipt.header + '\n';
+            printData += '\x1D!\x00';  // Normal size
+            printData += '\x1Ba\x00';  // Left align
+            printData += '\n';
+        }
+
+        // Subheader
+        if (receipt.subheader) {
+            printData += receipt.subheader + '\n';
+            printData += '\n';
+        }
+
+        // Items
+        if (receipt.items && receipt.items.length > 0) {
+            receipt.items.forEach(item => {
+                const line = this._formatReceiptLine(item.name, item.price, receipt.width || 48);
+                printData += line + '\n';
+            });
+            printData += '\n';
+        }
+
+        // Separator
+        if (receipt.items && receipt.items.length > 0) {
+            printData += '-'.repeat(receipt.width || 48) + '\n';
+        }
+
+        // Total
+        if (receipt.total !== undefined) {
+            const totalLine = this._formatReceiptLine('TOTAL', receipt.total, receipt.width || 48);
+            printData += '\x1BE\x01';  // Bold
+            printData += totalLine + '\n';
+            printData += '\x1BE\x00';  // Bold off
+        }
+
+        // Footer
+        if (receipt.footer) {
+            printData += '\n';
+            printData += '\x1Ba\x01';  // Center align
+            printData += receipt.footer + '\n';
+            printData += '\x1Ba\x00';  // Left align
+        }
+
+        // Cut paper
+        printData += '\n\n';
+        printData += '\x1Bd\x05';   // Feed 5 lines
+        printData += '\x1DV\x01';   // Partial cut
+
+        return await this.print(printData);
+    }
+
+    /**
+     * Get printer status
+     * @returns {Promise<Object>} Status information
+     */
+    async getStatus() {
+        if (!this.isOpen) {
+            throw new Error('Printer not open');
+        }
+
+        try {
+            const result = addon.getStatus(this.printerName);
+            if (!result.success) {
+                throw new Error(`Get status failed with code ${result.returnCode}`);
+            }
+
+            return {
+                status: result.status,
+                online: (result.status & 0x08) === 0,
+                coverOpen: (result.status & 0x04) !== 0,
+                paperOut: (result.status & 0x20) !== 0,
+                error: (result.status & 0x40) !== 0,
+                rawStatus: result.status
+            };
+        } catch (error) {
+            throw new Error(`Failed to get status: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get printer information
+     * @param {number} infoId - Information ID (0-255)
+     * @returns {Promise<Object>} Information data
+     */
+    async getInformation(infoId) {
+        if (!this.isOpen) {
+            throw new Error('Printer not open');
+        }
+
+        try {
+            const result = addon.getInformation(this.printerName, infoId);
+            if (!result.success) {
+                throw new Error(`Get information failed with code ${result.returnCode}`);
+            }
+
+            return {
+                data: result.data,
+                timeout: result.timeout,
+                infoId: infoId
+            };
+        } catch (error) {
+            throw new Error(`Failed to get information: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get device information (infoId = 10)
+     * @returns {Promise<string>} Device info string
+     */
+    async getDeviceInfo() {
+        const result = await this.getInformation(10);
+        return result.data;
+    }
+
+    /**
+     * Get firmware version (infoId = 11)
+     * @returns {Promise<string>} Firmware version
+     */
+    async getFirmwareVersion() {
+        const result = await this.getInformation(11);
+        return result.data;
+    }
+
+    /**
+     * Get serial number (infoId = 12)
+     * @returns {Promise<string>} Serial number
+     */
+    async getSerialNumber() {
+        const result = await this.getInformation(12);
+        return result.data;
+    }
+
+    /**
+     * Reset printer
+     * @returns {Promise<boolean>} Success status
+     */
+    async reset() {
+        if (!this.isOpen) {
+            throw new Error('Printer not open');
+        }
+
+        try {
+            const result = addon.resetPrinter(this.printerName);
+            return result.success;
+        } catch (error) {
+            throw new Error(`Failed to reset printer: ${error.message}`);
+        }
+    }
+
+    /**
+     * Start a document (for multi-command documents)
+     * @returns {Promise<Object>} Document info with jobId
+     */
+    async startDoc() {
+        if (!this.isOpen) {
+            throw new Error('Printer not open');
+        }
+
+        try {
+            const result = addon.startDoc(this.printerName);
+            if (!result.success) {
+                throw new Error(`Start doc failed with code ${result.returnCode}`);
+            }
+            return { jobId: result.jobId };
+        } catch (error) {
+            throw new Error(`Failed to start document: ${error.message}`);
+        }
+    }
+
+    /**
+     * End the current document
+     * @returns {Promise<boolean>} Success status
+     */
+    async endDoc() {
+        if (!this.isOpen) {
+            throw new Error('Printer not open');
+        }
+
+        try {
+            const result = addon.endDoc(this.printerName);
+            return result.success;
+        } catch (error) {
+            throw new Error(`Failed to end document: ${error.message}`);
+        }
+    }
+
+    /**
+     * Cancel the current document
+     * @returns {Promise<boolean>} Success status
+     */
+    async cancelDoc() {
+        if (!this.isOpen) {
+            throw new Error('Printer not open');
+        }
+
+        try {
+            const result = addon.cancelDoc(this.printerName);
+            return result.success;
+        } catch (error) {
+            throw new Error(`Failed to cancel document: ${error.message}`);
+        }
+    }
+
+    /**
+     * Format a receipt line with right-aligned price
+     * @private
+     */
+    _formatReceiptLine(name, price, width = 48) {
+        const priceStr = typeof price === 'number' ? `$${price.toFixed(2)}` : price.toString();
+        
+        let itemName = name;
+        const maxNameLength = width - priceStr.length - 2;
+        
+        if (itemName.length > maxNameLength) {
+            itemName = itemName.substring(0, maxNameLength - 3) + '...';
+        }
+        
+        const spaces = width - itemName.length - priceStr.length;
+        return itemName + ' '.repeat(Math.max(1, spaces)) + priceStr;
+    }
+}
+
+module.exports = NipponPrinter;
+module.exports.NipponPrinter = NipponPrinter;
+module.exports.enumeratePrinters = addon.enumeratePrinters;

@@ -1,0 +1,50 @@
+{
+  "name": "service-printer-nippon-addon",
+  "version": "1.0.0",
+  "description": "Nippon Thermal Printer native Node.js addon using NPrinterLib",
+  "main": "index.js",
+  "scripts": {
+    "build": "node-gyp rebuild",
+    "clean": "node-gyp clean",
+    "install": "node-gyp rebuild",
+    "test": "node test/test-basic.js",
+    "test:enum": "node test/test-enumerate.js",
+    "test:print": "node test/test-print.js",
+    "test:status": "node test/test-status.js",
+    "test:image": "node test/test-image.js",
+    "test:receipt": "node test/test-receipt.js"
+  },
+  "dependencies": {
+    "node-addon-api": "^7.0.0"
+  },
+  "devDependencies": {
+    "node-gyp": "^10.0.0"
+  },
+  "keywords": [
+    "thermal-printer",
+    "nippon",
+    "native-addon",
+    "receipt-printer",
+    "pos",
+    "nprinterlib"
+  ],
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "binding.gyp",
+    "src/",
+    "lib/",
+    "README.md"
+  ],
+  "author": "JCM",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "gypfile": true
+}

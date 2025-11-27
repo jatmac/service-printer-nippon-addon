@@ -1,0 +1,24 @@
+# Build output
+build/
+*.node
+
+# Node modules
+node_modules/
+
+# NPM
+npm-debug.log
+package-lock.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test output
+*.log

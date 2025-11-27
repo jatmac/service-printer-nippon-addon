@@ -1,0 +1,785 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>NPrinterCLib</name>
+    </assembly>
+    <members>
+        <member name="T:NPrinterCLib.NClassLib">
+            <summary>
+            NIIクラスライブラリ
+            </summary>
+        </member>
+        <member name="T:NPrinterCLib.NClassLib.SCANRESULT">
+            <summary>
+            プリンタ列挙用コールバック関数定義
+            </summary>
+            <param name="result">列挙関数戻り値</param>
+            <param name="count">プリンタ数</param>
+        </member>
+        <member name="T:NPrinterCLib.NClassLib.NCALLBACK">
+            <summary>
+            コールバック関数定義
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_type">コールバック種別</param>
+            <param name="i_value1">結果１</param>
+            <param name="i_value2">結果２</param>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.#ctor">
+            <summary>
+            コンストラクタ
+            </summary>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.Finalize">
+            <summary>
+            デストラクタ
+            </summary>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NEnumPrinters(System.Text.StringBuilder,System.Int64@)">
+            <summary>
+            ドライバーで管理しているプリンター名の一覧を取得する
+            </summary>
+            <param name="o_printers">プリンター名（csvカンマ区切り形式で列挙）</param>
+            <param name="o_size">o_printersのバイトサイズ</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NGetPrinterFromID(System.String,System.Text.StringBuilder)">
+            <summary>
+            BluetoothシリアルIDからプリンタ名を取得する
+            </summary>
+            <param name="i_ID">BluetoothシリアルID</param>
+            <param name="o_printer">プリンタ名</param>
+            <returns>エラー:(0)
+            <para>正常:(プリンタ名保存領域サイズ)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NDeletePrinter(System.String)">
+            <summary>
+            プリンター情報管理ファイル内のプリンター名を削除する
+            </summary>
+            <param name="i_prt">プリンタ名</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NRenamePrinter(System.String,System.String)">
+            <summary>
+            プリンター情報管理ファイル内のプリンター名を書き換える際に使用
+            ※ Windows SDKではこの関数は常に N_ERR_NOTSUPPORTED（関数非対応）を返します（Android/iOS SDK専用）
+            </summary>
+            <param name="i_beforeprt">変換前のプリンター名</param>
+            <param name="i_afterprt">変換後のプリンター名</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NGetPrinterInf(System.String,System.Text.StringBuilder,System.Int64@)">
+            <summary>
+            引数で指定されたプリンター名からプリンター情報管理ファイル内を検索し、
+            出力パス情報 ・接続種別を返します
+            ※ Windows SDKではこの関数は常に N_ERR_NOTSUPPORTED（関数非対応）を返します（Android/iOS SDK専用）
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="o_ports">ポート情報（csvカンマ区切り形式で列挙）</param>
+            <param name="o_size">o_portsのバイトサイズ</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NAutoOpen(System.Int32)">
+            <summary>
+            自動プリンターオープン機能のON/OFFを行います
+            </summary>
+            <param name="i_flg">自動プリンターオープンフラグ</param>
+            <returns>現在（設定後）の自動プリンターオープン設定状態
+            </returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NOpenPrinter(System.String,System.Byte,NPrinterCLib.NClassLib.NCALLBACK)">
+            <summary>
+            プリンターをオープンします
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_statusFlg">ステータス受信スレッド起動フラグ</param>
+            <param name="i_callback">コールバック関数ポインタ</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NOpenPrinter(System.String,System.Byte)">
+            <summary>
+            プリンターをオープンします
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_statusFlg">ステータス受信スレッド起動フラグ</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NClosePrinter(System.String)">
+            <summary>
+            プリンターをクローズします
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NClosePrinters">
+            <summary>
+            全てのプリンターをクローズします
+            </summary>
+            <returns>
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NPrint(System.String,System.Byte[],System.UInt32,System.Int32@)">
+            <summary>
+            指定された16進文字列データをプリンターに送信します
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_dat">送信データ(16進文字列）</param>
+            <param name="i_size">出力バイト数</param>
+            <param name="o_jobid">プリントジョブID（NULL指定可）</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NDPrint(System.String,System.Byte[],System.UInt32,System.Int32@)">
+            <summary>
+            指定されたデータをプリンターに送信します（変換なし）
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_dat">送信データ(16進文字列）</param>
+            <param name="i_size">出力バイト数</param>
+            <param name="o_jobid">プリントジョブID（NULL指定可）</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NImagePrint(System.String,System.IntPtr,System.Int32,System.Int32,System.Byte,System.Int32@)">
+            <summary>
+            指定されたデバイスコンテキストをラスターイメージにてプリンターに送信します
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_bmp">デバイスコンテキストハンドル</param>
+            <param name="i_width">幅</param>
+            <param name="i_height">高さ</param>
+            <param name="i_putType">出力方式</param>
+            <param name="io_jobid">プリントジョブID（NULL指定可）</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NImagePrintF(System.String,System.String,System.Byte,System.Int32@)">
+            <summary>
+            指定されたBMPファイルをラスターイメージにてプリンターに送信します
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_bmp">BMPファイル名</param>
+            <param name="i_putType">出力方式</param>
+            <param name="io_jobid">プリントジョブID（NULL指定可）</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NBitImagePrint(System.String,System.IntPtr,System.Int32,System.Int32,System.Byte,System.Int32@)">
+            <summary>
+            指定されたデバイスコンテキストをビットイメージにてプリンターに送信します
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_bmp">デバイスコンテキストハンドル</param>
+            <param name="i_width">幅</param>
+            <param name="i_height">高さ</param>
+            <param name="i_putType">出力方式</param>
+            <param name="io_jobid">プリントジョブID（NULL指定可）</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NBitImagePrintF(System.String,System.String,System.Byte,System.Int32@)">
+            <summary>
+            指定されたBMPファイルをビットイメージにてプリンターに送信します
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_bmp">BMPファイル名</param>
+            <param name="i_putType">出力方式</param>
+            <param name="io_jobid">プリントジョブID（NULL指定可）</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NGetStatus(System.String,System.Int64@)">
+            <summary>
+            ステータスを取得します
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="o_status">ステータス</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NGetInformation(System.String,System.Byte,System.Byte[],System.Int64@)">
+            <summary>
+            拡張情報の対象種別IDに保存されている情報を取得する
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_id">種別ID</param>
+            <param name="o_dat">拡張情報格納エリア</param>
+            <param name="o_time">更新フラグ（システムを起動した後の経過時間）</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NResetPrinter(System.String)">
+            <summary>
+            プリンターをリセットします。印字中の印刷ジョブもキャンセルされます。
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NStartDoc(System.String,System.Int32@)">
+            <summary>
+            ドキュメントを開始します
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NEndDoc(System.String)">
+            <summary>
+            ドキュメントを終了します
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NCancelDoc(System.String)">
+            <summary>
+            ドキュメントをキャンセルします
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NEnumDoc(System.String,System.Text.StringBuilder)">
+            <summary>
+            送信待ち状態のドキュメント番号リスト（CSV)を返します
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="o_docnolist">ドキュメント番号リスト（CSV)</param>
+            <returns>エラー:(0)
+            <para>正常:(プリンタ名保存領域サイズ)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NDeleteDoc(System.String,System.Int32)">
+            <summary>
+            送信待ちドキュメントを削除します
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="i_docno">ドキュメント番号</param>
+            <returns>エラー:(0)
+            <para>正常:(プリンタ名保存領域サイズ)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NBarcodeSettings(System.UInt32,System.UInt32,System.UInt32,System.Char,System.Char,System.Char,System.Char,System.UInt32,System.UInt32,System.UInt32)">
+            <summary>
+            NBarcodeの出力設定
+            </summary>
+            <param name="i_id">バーコード種別</param>
+            <param name="i_width">バーの高さ</param>
+            <param name="i_height">モジュール幅</param>
+            <param name="i_option1">オプション1</param>
+            <param name="i_option2">オプション2</param>
+            <param name="i_option3">オプション3</param>
+            <param name="i_option4">オプション4</param>
+            <param name="i_hri">HRI文字</param>
+            <param name="i_spin">回転</param>
+            <param name="i_code">文字コード</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NBarcode(System.String,System.String,System.IntPtr,System.UInt32,System.UInt32,System.UInt32,System.UInt32,System.Byte[],System.UInt32)">
+            <summary>
+            プリンターのバーコードフォント/2次元バーコードフォントに指定されている設定の
+            バーコード/2次元バーコードをデバイスコンテキスト上に描画します。
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_fontName">バーコードフォント名</param>
+            <param name="i_bmp">デバイスコンテキストハンドル</param>
+            <param name="i_x">レフト</param>
+            <param name="i_y">トップ</param>
+            <param name="i_width">幅</param>
+            <param name="i_height">高さ</param>
+            <param name="i_dat">バーコードデータ</param>
+            <param name="i_size">データサイズ</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NBarcode2(System.IntPtr,System.UInt32,System.UInt32,System.UInt32@,System.UInt32@,System.Byte[],System.Int32)">
+            <summary>
+            プリンターのバーコードフォント/2次元バーコードフォントに指定されている設定の
+            バーコード/2次元バーコードをデバイスコンテキスト上に描画します。
+            </summary>
+            <param name="i_bmp">デバイスコンテキストハンドル</param>
+            <param name="i_x">レフト</param>
+            <param name="i_y">トップ</param>
+            <param name="io_width">幅</param>
+            <param name="io_height">高さ</param>
+            <param name="i_dat">バーコードデータ</param>
+            <param name="i_size">データサイズ</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NFirmwareDL(System.String,System.String,System.Byte,System.Int16@,System.Int32@)">
+            <summary>
+            指定されたFWFファイルをプリンターに送信します。
+            またFWFファイルをNULLで指定した場合には、プリンターからチェックサムを取得し、
+            指定されたチェックサムと比較します。
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_file">fwfファイル名（NULL指定可）</param>
+            <param name="i_errflg">エラーチェックフラグ</param>
+            <param name="io_chksum">fwfファイルのチェックサム</param>
+            <param name="io_jobid">プリントジョブID（NULL指定可）</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NScanPrinters(System.UInt32)">
+            <summary>
+              当関数を実行することでメンテナンスプロトコルのプリンター列挙要求をブロードキャスト送信します。
+              引数 i_waitmsecで指定されたミリ秒（デフォルト1000ms）の間、プリンター列挙応答の受信・データ作成を行い、
+              得られたWi-Fiプリンターの件数をo_countに格納します。
+              0を指定された場合にはプリンター列挙要求を行わず、作成済みのプリンター台数をそのまま返します。
+            </summary>
+            <param name="i_waitmsec">プリンター列挙要求から列挙応答・データ作成までの待機ミリ秒数</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NSetWriteSize(System.Byte,System.UInt32,System.UInt32)">
+            <summary>
+             送信サイズと送信間隔（msec）を設定します。
+             Wi-Fi通信時のみの対応とし、他種別ではエラーを返します
+            </summary>
+            <param name="i_type">接続種別</param>
+            <param name="i_size">送信サイズ</param>
+            <param name="i_interval">送信間隔（msec）</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NTCPPortLock(System.String,System.Byte)">
+            <summary>
+            TCP通信のロック/アンロックを行います。
+            ロックしたユーザーのみTCP通信でデータ送信が行えます。
+            他ユーザーは接続はできますが送信不可となります。
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_type">接続種別</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NBufferClear(System.String)">
+            <summary>
+            受信バッファのクリアを行います（全バッファ）
+            WLAN通信時のみの対応とし、他種別ではエラーを返します。
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NBlockSendSetting(System.String,System.Byte)">
+            <summary>
+            送信データをWLANモジュールのバッファへ溜め込み、一括送信が行えます。
+            当関数は一括送信のON/OFFを切り替えることができます。
+            </summary>
+            <param name="i_prt">プリンター名</param>
+            <param name="i_type">接続種別</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NInitializeNetwork(System.Int32)">
+            <summary>
+            コールバック関数の設定を行います
+            </summary>
+            <param name="i_flg">設定種別</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NPrinterCLib.NClassLib.NSetCallback(NPrinterCLib.NClassLib.NCALLBACK)">
+            <summary>
+            コールバック関数の設定を行います
+            </summary>
+            <param name="i_callback">コールバック関数ポインタ</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="T:NiiPrinterCLib.NIIClassLib">
+            <summary>
+            NIIクラスライブラリ
+            </summary>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.#ctor">
+            <summary>
+            コンストラクタ
+            </summary>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiPrint(System.String,System.String,System.Int64,System.Int64@)">
+            <summary>
+            指定されたデータをプリンタに送信
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="i_dat">送信データ(16進文字列)</param>
+            <param name="i_size">出力文字数</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiImagePrint(System.String,System.IntPtr,System.Int32,System.Int32,System.Boolean,System.Int64@)">
+            <summary>
+            指定されたデバイスコンテキストをラスターイメージにてプリンタ送信
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="i_bmp">デバイスコンテキストハンドル</param>
+            <param name="i_x">幅</param>
+            <param name="i_y">高さ</param>
+            <param name="i_file">ファイル単位送信 true:ファイル単位 false:ライン単位</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiBitImagePrint(System.String,System.IntPtr,System.Int32,System.Int32,System.Int64@)">
+            <summary>
+            指定されたデバイスコンテキストをビットイメージにてプリンタ送信
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="i_bmp">デバイスコンテキストハンドル</param>
+            <param name="i_x">幅</param>
+            <param name="i_y">高さ</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiGetStatus(System.String,System.Int64@)">
+            <summary>
+            指定されたプリンタで取得されているステータスを返します
+            <para>※返される値は、対象プリンタの仕様書の《ESC v》コマンド参照の事</para>
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="o_file">ステータス</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para>
+            <para>警告:(+値)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiStartDoc(System.String,System.Int64@)">
+            <summary>
+            ドキュメントを開始します
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para>
+            <para>警告:(+値)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiEndDoc(System.String)">
+            <summary>
+            ドキュメントを終了します
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para>
+            <para>警告:(+値)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiCancelDoc(System.String)">
+            <summary>
+            ドキュメントをキャンセルします
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para>
+            <para>警告:(+値)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiGetInformation(System.String,System.Byte,System.Byte[],System.Int64@)">
+            <summary>
+            対象の種別IDの保存されている情報を取得
+            <para>※予め上位アプリケーションからほしい情報の要求をプリンタに送る必要があります</para>
+            <para>　(拡張ステータス、印字完了情報等要求を必要としないものもあります)</para>
+            <para>※返される値は、対象プリンタの仕様書の《ESC v》コマンド参照の事</para>
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="i_id">種別ID</param>
+            <param name="o_dat">拡張情報格納エリア</param>
+            <param name="o_time">更新フラグ(システムを起動した後の経過時間)</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="P:NiiPrinterCLib.NIIClassLib.PrinterName">
+            <summary>
+            NII Printer Driver Name
+            </summary>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiPrint(System.String,System.Int64,System.Int64@)">
+            <summary>
+            指定されたデータをプリンタに送信
+            </summary>
+            <param name="i_dat">送信データ(16進文字列)</param>
+            <param name="i_size">出力文字数</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiImagePrint(System.IntPtr,System.Int32,System.Int32,System.Boolean,System.Int64@)">
+            <summary>
+            指定されたデバイスコンテキストをラスターイメージにてプリンタ送信
+            </summary>
+            <param name="i_bmp">デバイスコンテキストハンドル</param>
+            <param name="i_x">幅</param>
+            <param name="i_y">高さ</param>
+            <param name="i_file">ファイル単位送信 true:ファイル単位 false:ライン単位</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiBitImagePrint(System.IntPtr,System.Int32,System.Int32,System.Int64@)">
+            <summary>
+            指定されたデバイスコンテキストをビットイメージにてプリンタ送信
+            </summary>
+            <param name="i_bmp">デバイスコンテキストハンドル</param>
+            <param name="i_x">幅</param>
+            <param name="i_y">高さ</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiGetStatus(System.Int64@)">
+            <summary>
+            指定されたプリンタで取得されているステータスを返します
+            <para>※返される値は、対象プリンタの仕様書の《ESC v》コマンド参照の事</para>
+            </summary>
+            <param name="o_file">ステータス</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para>
+            <para>警告:(+値)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiStartDoc(System.Int64@)">
+            <summary>
+            ドキュメントを開始します
+            </summary>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para>
+            <para>警告:(+値)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiEndDoc">
+            <summary>
+            ドキュメントを終了します
+            </summary>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para>
+            <para>警告:(+値)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiCancelDoc">
+            <summary>
+            ドキュメントをキャンセルします
+            </summary>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para>
+            <para>警告:(+値)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiGetInformation(System.Byte,System.Byte[],System.Int64@)">
+            <summary>
+            対象の種別IDの保存されている情報を取得
+            <para>※予め上位アプリケーションからほしい情報の要求をプリンタに送る必要があります</para>
+            <para>　(拡張ステータス、印字完了情報等要求を必要としないものもあります)</para>
+            <para>※返される値は、対象プリンタの仕様書の《ESC v》コマンド参照の事</para>
+            </summary>
+            <param name="i_id">種別ID</param>
+            <param name="o_dat">拡張情報格納エリア</param>
+            <param name="o_time">更新フラグ(システムを起動した後の経過時間)</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiGetJobEndInf">
+            <summary>
+            拡張情報取得(ID19)
+            </summary>
+            <returns>エラー:(0)
+            <para>正常:(JOB ID)</para>
+            </returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiGetJobEndInf(System.Int64@)">
+            <summary>
+            拡張情報取得(ID19)
+            </summary>
+            <param name="o_st">最終終了ステータス取得</param>
+            <returns>エラー:(0)
+            <para>正常:(JOB ID)</para>
+            </returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiGetJobEndInf(System.Int64@,System.Int64@)">
+            <summary>
+            拡張情報取得(ID19)
+            </summary>
+            <param name="o_st">最終終了ステータス取得</param>
+            <param name="o_time">更新フラグ(システムを起動した後の経過時間)</param>
+            <returns>エラー:(0)
+            <para>正常:(JOB ID)</para>
+            </returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiDPrint(System.String,System.Byte[],System.Int64,System.Int64@)">
+            <summary>
+            対象ﾃﾞｰﾀを対象ﾌﾟﾘﾝﾀ(ﾎﾟｰﾄ)に出力
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="i_dat">送信データ(16進文字列)</param>
+            <param name="i_size">出力文字数</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiDPrint(System.Byte[],System.Int64,System.Int64@)">
+            <summary>
+            対象ﾃﾞｰﾀを対象ﾌﾟﾘﾝﾀ(ﾎﾟｰﾄ)に出力
+            </summary>
+            <param name="i_dat">送信データ(16進文字列)</param>
+            <param name="i_size">出力文字数</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiResetPrinter(System.String)">
+            <summary>
+            対象ﾌﾟﾘﾝﾀをリセットします
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiResetPrinter">
+            <summary>
+            対象ﾌﾟﾘﾝﾀをリセットします
+            </summary>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiImagePrintEx(System.String,System.IntPtr,System.Int32,System.Int32,System.Byte,System.Int64@)">
+            <summary>
+            指定されたデバイスコンテキストをラスターイメージにてプリンタ送信
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="i_bmp">デバイスコンテキストハンドル</param>
+            <param name="i_x">幅</param>
+            <param name="i_y">高さ</param>
+            <param name="i_file">ファイル単位送信 2:ファイル単位階調 1:ファイル単位 0:ライン単位</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiImagePrintEx(System.IntPtr,System.Int32,System.Int32,System.Byte,System.Int64@)">
+            <summary>
+            指定されたデバイスコンテキストをラスターイメージにてプリンタ送信
+            </summary>
+            <param name="i_bmp">デバイスコンテキストハンドル</param>
+            <param name="i_x">幅</param>
+            <param name="i_y">高さ</param>
+            <param name="i_file">ファイル単位送信 2:ファイル単位階調 1:ファイル単位 0:ライン単位</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiBarcode(System.String,System.String,System.IntPtr,System.Int32,System.Int32,System.Int32,System.Int32,System.Byte[],System.Int32)">
+            <summary>
+            対象コンテキストデバイスに指定されたバーコードフォントでバーコード描画
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="i_fname">フォント名</param>
+            <param name="i_bmp">デバイスコンテキストハンドル</param>
+            <param name="i_x">X</param>
+            <param name="i_y">Y</param>
+            <param name="i_width">幅</param>
+            <param name="i_height">高さ</param>    
+            <param name="i_dat">バーコードデータ</param>
+            <param name="i_size">データサイズ</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiBarcode(System.String,System.IntPtr,System.Int32,System.Int32,System.Int32,System.Int32,System.Byte[],System.Int32)">
+            <summary>
+            対象コンテキストデバイスに指定されたバーコードフォントでバーコード描画
+            </summary>
+            <param name="i_fname">フォント名</param>
+            <param name="i_bmp">デバイスコンテキストハンドル</param>
+            <param name="i_x">X</param>
+            <param name="i_y">Y</param>
+            <param name="i_width">幅</param>
+            <param name="i_height">高さ</param>    
+            <param name="i_dat">バーコードデータ</param>
+            <param name="i_size">データサイズ</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiImagePrintF(System.String,System.String,System.Byte,System.Int64@)">
+            <summary>
+            指定されたBMPファイルをラスタービットイメージにてプリンタに送信
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="i_bmp">BMPファイル名</param>
+            <param name="i_file">出力形式</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiImagePrintF(System.String,System.Byte,System.Int64@)">
+            <summary>
+            指定されたBMPファイルをラスタービットイメージにてプリンタに送信
+            </summary>
+            <param name="i_bmp">BMPファイル名</param>
+            <param name="i_file">出力形式</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiBitImagePrintF(System.String,System.String,System.Int64@)">
+            <summary>
+            指定されたBMPファイルをビットイメージにてプリンタに送信
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="i_bmp">BMPファイル名</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiBitImagePrintF(System.String,System.Int64@)">
+            <summary>
+            指定されたBMPファイルをビットイメージにてプリンタに送信
+            </summary>
+            <param name="i_bmp">BMPファイル名</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiFWDL(System.String,System.String,System.Byte@,System.Int16@,System.Int64@)">
+            <summary>
+            指定されたFWFファイルをプリンタに送信
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="i_file">FWFファイル名</param>
+            <param name="o_flg">監視フラグ有効無効</param>
+            <param name="o_chksum">チェックサム</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiFWDL(System.String,System.Byte@,System.Int16@,System.Int64@)">
+            <summary>
+            指定されたFWFファイルをプリンタに送信
+            </summary>
+            <param name="i_file">FWFファイル名</param>
+            <param name="o_flg">監視フラグ有効無効</param>
+            <param name="o_chksum">チェックサム</param>
+            <param name="o_jobid">プリントジョブID</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiFWCHK(System.String,System.Int16)">
+            <summary>
+            プリンタからチェックサムを取得し、指定されたチェックサムと比較
+            </summary>
+            <param name="i_prt">出力プリンタ名</param>
+            <param name="i_chksum">チェックサム</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+        <member name="M:NiiPrinterCLib.NIIClassLib.NiiFWCHK(System.Int16)">
+            <summary>
+            プリンタからチェックサムを取得し、指定されたチェックサムと比較
+            </summary>
+            <param name="i_chksum">チェックサム</param>
+            <returns>エラー:(-値)
+            <para>正常:(0)</para></returns>
+        </member>
+    </members>
+</doc>
