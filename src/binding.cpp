@@ -255,6 +255,23 @@ Napi::Value GetStatus(const Napi::CallbackInfo& info) {
     result.Set("success", Napi::Boolean::New(env, ret == 0));
     result.Set("returnCode", Napi::Number::New(env, ret));
     result.Set("status", Napi::Number::New(env, status));
+    
+    // Add error description for common error codes
+    if (ret == -5) {
+        result.Set("errorMessage", Napi::String::New(env, "Printer not connected or not responding"));
+        result.Set("connected", Napi::Boolean::New(env, false));
+    } else if (ret == -12) {
+        result.Set("errorMessage", Napi::String::New(env, "Printer not opened or invalid printer handle"));
+        result.Set("connected", Napi::Boolean::New(env, false));
+    } else if (ret == -1) {
+        result.Set("errorMessage", Napi::String::New(env, "General printer error"));
+        result.Set("connected", Napi::Boolean::New(env, false));
+    } else if (ret < 0) {
+        result.Set("errorMessage", Napi::String::New(env, "Printer error occurred"));
+        result.Set("connected", Napi::Boolean::New(env, false));
+    } else {
+        result.Set("connected", Napi::Boolean::New(env, true));
+    }
 
     return result;
 }

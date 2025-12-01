@@ -62,12 +62,26 @@ declare module 'service-printer-nippon-addon' {
         status: number;
         /** Printer is online */
         online: boolean;
+        /** Printer is ready (no errors and not printing) */
+        ready: boolean;
+        /** Printer is connected and responding */
+        connected: boolean;
+        /** Currently printing */
+        printing: boolean;
+        /** Paper is near end */
+        paperNearEnd: boolean;
         /** Cover is open */
         coverOpen: boolean;
         /** Paper is out */
         paperOut: boolean;
+        /** Printer head overheat */
+        overheat: boolean;
         /** Error condition */
         error: boolean;
+        /** Error message (if error occurred) */
+        errorMessage?: string;
+        /** Return code from the status call */
+        returnCode?: number;
         /** Raw status value */
         rawStatus: number;
     }

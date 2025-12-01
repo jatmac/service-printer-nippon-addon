@@ -272,8 +272,24 @@ class NipponPrinter {
 
         try {
             const result = addon.getStatus(this.printerName);
-            if (!result.success) {
-                throw new Error(`Get status failed with code ${result.returnCode}`);
+            
+            // Handle any error return code gracefully
+            if (result.returnCode < 0) {
+                return {
+                    status: 0,
+                    online: false,
+                    ready: false,
+                    connected: false,
+                    printing: false,
+                    paperNearEnd: false,
+                    coverOpen: false,
+                    paperOut: false,
+                    overheat: false,
+                    error: true,
+                    errorMessage: result.errorMessage || `Printer error (code ${result.returnCode})`,
+                    returnCode: result.returnCode,
+                    rawStatus: result.status
+                };
             }
 
             const status = result.status;
@@ -295,6 +311,7 @@ class NipponPrinter {
                 status: result.status,
                 online: online,              // true when no error conditions
                 ready: ready,                // true when no issues and not printing
+                connected: result.connected !== false,  // Printer is connected
                 printing: printing,          // Bit 7: Currently printing
                 paperNearEnd: paperNearEnd,  // Bit 0: Paper running low
                 coverOpen: coverOpen,        // Bit 1: Cover is open
@@ -358,6 +375,64 @@ class NipponPrinter {
      */
     async getSerialNumber() {
         const result = await this.getInformation(12);
+        return result.data;
+    }
+
+    /**
+     * Get mileage/usage counter (infoId = 9)
+     * Returns user maintenance counter with print head usage statistics
+     * Note: This feature may not be supported on all printer models
+     * @returns {Promise<Object>} Mileage data with usage counters
+     */
+    async getMileage() {
+        const result = await this.getInformation(9);
+        
+        // Type 9 returns 16 bytes:
+        // - Bytes 0-3: Number of dot lines energizing head (4 bytes)
+        // - Bytes 4-7: Number of fed dot lines (4 bytes)
+        // - Bytes 8-11: Number of cuts (4 bytes)
+        // - Bytes 12-15: Reserved (4 bytes)
+        
+        // The data might be returned as a string, convert to buffer properly
+        let buffer;
+        if (typeof result.data === 'string') {
+            // Create buffer from string bytes
+            buffer = Buffer.from(result.data.split('').map(c => c.charCodeAt(0)));
+        } else if (Buffer.isBuffer(result.data)) {
+            buffer = result.data;
+        } else {
+            buffer = Buffer.from(result.data);
+        }
+        
+        // Check if we have data (some models don't support this)
+        if (buffer.length === 0) {
+            return {
+                supported: false,
+                message: 'Mileage counter not supported by this printer model'
+            };
+        }
+        
+        // Check if we have enough data
+        if (buffer.length < 16) {
+            throw new Error(`Expected 16 bytes for mileage data, got ${buffer.length} bytes. Data: ${buffer.toString('hex')}`);
+        }
+        
+        return {
+            supported: true,
+            dotLinesEnergizing: buffer.readUInt32LE(0),  // Total dot lines printed
+            dotLinesFed: buffer.readUInt32LE(4),         // Total paper feed in dot lines
+            cuts: buffer.readUInt32LE(8),                // Total number of cuts
+            reserved: buffer.readUInt32LE(12),           // Reserved field
+            raw: buffer.toString('hex')                  // Raw hex data for debugging
+        };
+    }
+
+    /**
+     * Get model name (infoId = 2)
+     * @returns {Promise<string>} Model name
+     */
+    async getModelName() {
+        const result = await this.getInformation(2);
         return result.data;
     }
 
