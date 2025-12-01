@@ -245,6 +245,25 @@ class NipponPrinter {
     /**
      * Get printer status
      * @returns {Promise<Object>} Status information
+     * 
+     * Status bit mapping (based on actual Nippon printer behavior):
+     * - Bit 0 (0x01): Paper Near End
+     * - Bit 1 (0x02): Cover Open
+     * - Bit 2 (0x04): Paper Out
+     * - Bit 3 (0x08): Overheat (printer head temperature too high)
+     * - Bit 7 (0x80): Printing (printer is currently processing a print job)
+     * 
+     * Observed values:
+     * - 0: Ready (no issues)
+     * - 1: Paper near end
+     * - 2: Cover open
+     * - 3: Paper near end + Cover open
+     * - 4: Paper out
+     * - 5: Paper near end + Paper out
+     * - 6: Cover open + Paper out
+     * - 7: Paper near end + Cover open + Paper out
+     * - 8+: Include overheat condition
+     * - 128+: Include printing status (bit 7)
      */
     async getStatus() {
         if (!this.isOpen) {
@@ -257,13 +276,32 @@ class NipponPrinter {
                 throw new Error(`Get status failed with code ${result.returnCode}`);
             }
 
+            const status = result.status;
+            
+            // Correct bit mapping for Nippon printer
+            const paperNearEnd = (status & 0x01) !== 0;  // Bit 0
+            const coverOpen = (status & 0x02) !== 0;     // Bit 1
+            const paperOut = (status & 0x04) !== 0;      // Bit 2
+            const overheat = (status & 0x08) !== 0;      // Bit 3
+            const printing = (status & 0x80) !== 0;      // Bit 7
+            
+            // Printer is online/ready when no error conditions exist (printing status doesn't count as error)
+            const hasError = (status & 0x0F) !== 0;  // Check bits 0-3 for errors
+            const ready = !hasError && !printing;
+            const online = !hasError;  // Online even while printing
+            const error = hasError;
+
             return {
                 status: result.status,
-                online: (result.status & 0x08) === 0,
-                coverOpen: (result.status & 0x04) !== 0,
-                paperOut: (result.status & 0x20) !== 0,
-                error: (result.status & 0x40) !== 0,
-                rawStatus: result.status
+                online: online,              // true when no error conditions
+                ready: ready,                // true when no issues and not printing
+                printing: printing,          // Bit 7: Currently printing
+                paperNearEnd: paperNearEnd,  // Bit 0: Paper running low
+                coverOpen: coverOpen,        // Bit 1: Cover is open
+                paperOut: paperOut,          // Bit 2: Paper is out
+                overheat: overheat,          // Bit 3: Printer head overheat
+                error: error,                // true when any error condition exists
+                rawStatus: result.status     // Raw status value for debugging
             };
         } catch (error) {
             throw new Error(`Failed to get status: ${error.message}`);

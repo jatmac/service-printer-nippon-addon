@@ -48,21 +48,34 @@ async function monitorStatus() {
                 const status = await printer.getStatus();
                 const timestamp = new Date().toLocaleTimeString();
                 
-                console.log(`[${timestamp}] Status: 0x${status.rawStatus.toString(16).padStart(8, '0')}`);
-                console.log(`  Online: ${status.online ? 'YES' : 'NO'}  ` +
-                          `Cover: ${status.coverOpen ? 'OPEN' : 'Closed'}  ` +
-                          `Paper: ${status.paperOut ? 'OUT' : 'OK'}  ` +
+                console.log(`[${timestamp}] Status: 0x${status.rawStatus.toString(16).padStart(2, '0')} (${status.rawStatus})`);
+                console.log(`  Ready: ${status.ready ? 'YES' : 'NO'}  ` +
+                          `Online: ${status.online ? 'YES' : 'NO'}  ` +
+                          `Printing: ${status.printing ? 'YES' : 'NO'}  ` +
                           `Error: ${status.error ? 'YES' : 'No'}`);
+                console.log(`  Paper Near End: ${status.paperNearEnd ? 'YES' : 'NO'}  ` +
+                          `Cover Open: ${status.coverOpen ? 'YES' : 'NO'}  ` +
+                          `Paper Out: ${status.paperOut ? 'YES' : 'NO'}  ` +
+                          `Overheat: ${status.overheat ? 'YES' : 'NO'}`);
                 console.log('');
 
-                if (status.error) {
-                    console.log('[WARNING] ERROR CONDITION DETECTED!');
+                if (status.printing) {
+                    console.log('[INFO] Printer is currently printing...');
                 }
                 if (status.paperOut) {
                     console.log('[WARNING] PAPER OUT!');
                 }
+                if (status.paperNearEnd) {
+                    console.log('[WARNING] PAPER NEAR END!');
+                }
                 if (status.coverOpen) {
                     console.log('[WARNING] COVER OPEN!');
+                }
+                if (status.overheat) {
+                    console.log('[WARNING] OVERHEAT! Allow printer to cool down.');
+                }
+                if (status.error) {
+                    console.log('[WARNING] ERROR CONDITION DETECTED!');
                 }
 
             } catch (error) {
